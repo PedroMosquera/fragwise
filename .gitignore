@@ -1,0 +1,45 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- Node / JS ---
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+
+# --- Build outputs ---
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# --- Env / secrets ---
+.env
+.env.local
+.env.*.local
+
+# --- Databases / artifacts ---
+*.sqlite
+*.sqlite3
+*.db
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
