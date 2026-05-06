@@ -1,0 +1,142 @@
+# ~10 example fragrances for end-to-end smoke tests.
+# Real curated catalog data lands in a follow-up phase.
+fragrances:
+  - slug: chanel-no-5
+    name: "No. 5"
+    brand: { slug: chanel, name: Chanel }
+    perfumers:
+      - { slug: ernest-beaux, name: Ernest Beaux }
+    concentration: edp
+    gender: fem
+    year_released: 1921
+    description: "Iconic aldehydic floral; the archetype of modern perfumery."
+    notes:
+      top: [bergamot, lemon]
+      heart: [jasmine, rose]
+      base: [sandalwood, vanilla]
+
+  - slug: dior-sauvage
+    name: Sauvage
+    brand: { slug: dior, name: Dior }
+    perfumers:
+      - { slug: francois-demachy, name: François Demachy }
+    concentration: edt
+    gender: masc
+    year_released: 2015
+    description: "Fresh ambroxan-driven masculine bestseller."
+    notes:
+      top: [bergamot]
+      heart: [iris]
+      base: [cedarwood]
+
+  - slug: creed-aventus
+    name: Aventus
+    brand: { slug: creed, name: Creed }
+    perfumers:
+      - { slug: olivier-creed, name: Olivier Creed }
+    concentration: edp
+    gender: masc
+    year_released: 2010
+    description: "Smoky pineapple-and-birch icon of the 2010s."
+    notes:
+      top: [bergamot, grapefruit]
+      heart: [jasmine, rose]
+      base: [oud, vanilla]
+
+  - slug: tom-ford-tobacco-vanille
+    name: Tobacco Vanille
+    brand: { slug: tom-ford, name: Tom Ford }
+    perfumers: []
+    concentration: edp
+    gender: unisex
+    year_released: 2007
+    description: "Spiced tobacco leaf wrapped in creamy vanilla and tonka."
+    notes:
+      top: [orange]
+      heart: [tonka, vanilla]
+      base: [vanilla, tonka]
+
+  - slug: ysl-libre
+    name: Libre
+    brand: { slug: yves-saint-laurent, name: Yves Saint Laurent }
+    perfumers:
+      - { slug: anne-flipo, name: Anne Flipo }
+      - { slug: carlos-benaim, name: Carlos Benaïm }
+    concentration: edp
+    gender: fem
+    year_released: 2019
+    description: "Lavender-orange-blossom modern feminine."
+    notes:
+      top: [orange, bergamot]
+      heart: [jasmine]
+      base: [vanilla, cedarwood]
+
+  - slug: jean-paul-gaultier-le-male
+    name: Le Male
+    brand: { slug: jean-paul-gaultier, name: Jean Paul Gaultier }
+    perfumers:
+      - { slug: francis-kurkdjian, name: Francis Kurkdjian }
+    concentration: edt
+    gender: masc
+    year_released: 1995
+    description: "Lavender-vanilla fougère in the iconic torso bottle."
+    notes:
+      top: [bergamot]
+      heart: [iris]
+      base: [vanilla, tonka]
+
+  - slug: maison-margiela-jazz-club
+    name: "Replica Jazz Club"
+    brand: { slug: maison-margiela, name: Maison Margiela }
+    perfumers: []
+    concentration: edt
+    gender: unisex
+    year_released: 2013
+    description: "Whisky, tobacco, and vanilla evoke a smoky jazz lounge."
+    notes:
+      top: [orange]
+      heart: [tonka]
+      base: [vanilla, tonka]
+
+  - slug: versace-eros
+    name: Eros
+    brand: { slug: versace, name: Versace }
+    perfumers:
+      - { slug: aurelien-guichard, name: Aurélien Guichard }
+    concentration: edt
+    gender: masc
+    year_released: 2012
+    description: "Fresh mint-vanilla-tonka with a bright citrus opening."
+    notes:
+      top: [lemon]
+      heart: [tonka]
+      base: [vanilla, vetiver, cedarwood]
+
+  - slug: guerlain-shalimar
+    name: Shalimar
+    brand: { slug: guerlain, name: Guerlain }
+    perfumers:
+      - { slug: jacques-guerlain, name: Jacques Guerlain }
+    concentration: parfum
+    gender: fem
+    year_released: 1925
+    year_text: "1925 (reformulated 1990s)"
+    description: "Original oriental — bergamot opening over vanillic amber."
+    notes:
+      top: [bergamot, lemon]
+      heart: [jasmine, rose, iris]
+      base: [vanilla, tonka, sandalwood]
+
+  - slug: byredo-gypsy-water
+    name: "Gypsy Water"
+    brand: { slug: byredo, name: Byredo }
+    perfumers:
+      - { slug: jerome-epinette, name: Jérôme Epinette }
+    concentration: edp
+    gender: unisex
+    year_released: 2008
+    description: "Bohemian woody with bergamot, pine, and vanilla."
+    notes:
+      top: [bergamot, lemon]
+      heart: [iris]
+      base: [sandalwood, vanilla]

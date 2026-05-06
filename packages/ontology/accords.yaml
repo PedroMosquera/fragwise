@@ -1,0 +1,9 @@
+# EXAMPLES — replace with curated data in a follow-up phase.
+version: 1
+accords:
+  - { slug: chypre,    name: Chypre }
+  - { slug: fougere,   name: Fougere }
+  - { slug: oriental,  name: Oriental }
+  - { slug: gourmand,  name: Gourmand }
+  - { slug: aquatic,   name: Aquatic }
+  - { slug: woody,     name: Woody }

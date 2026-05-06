@@ -1,0 +1,41 @@
+# EXAMPLES — replace with curated data in a follow-up phase.
+version: 1
+notes:
+  # Top-level (parent_slug: null)
+  - slug: citrus
+    name: Citrus
+  - slug: woody
+    name: Woody
+  - slug: floral
+    name: Floral
+  - slug: gourmand
+    name: Gourmand
+  - slug: aquatic
+    name: Aquatic
+
+  # Citrus children
+  - { slug: bergamot,    name: Bergamot,    parent_slug: citrus }
+  - { slug: lemon,       name: Lemon,       parent_slug: citrus }
+  - { slug: orange,      name: Orange,      parent_slug: citrus }
+  - { slug: grapefruit,  name: Grapefruit,  parent_slug: citrus }
+
+  # Woody children
+  - { slug: sandalwood,  name: Sandalwood,  parent_slug: woody }
+  - { slug: cedarwood,   name: Cedarwood,   parent_slug: woody }
+  - { slug: vetiver,     name: Vetiver,     parent_slug: woody }
+  - { slug: oud,         name: Oud,         parent_slug: woody }
+
+  # Floral children
+  - { slug: rose,        name: Rose,        parent_slug: floral }
+  - { slug: jasmine,     name: Jasmine,     parent_slug: floral }
+  - { slug: tuberose,    name: Tuberose,    parent_slug: floral }
+  - { slug: iris,        name: Iris,        parent_slug: floral }
+
+  # Gourmand children
+  - { slug: vanilla,     name: Vanilla,     parent_slug: gourmand }
+  - { slug: tonka,       name: Tonka Bean,  parent_slug: gourmand }
+  - { slug: caramel,     name: Caramel,     parent_slug: gourmand }
+
+  # Aquatic children
+  - { slug: salt,        name: Sea Salt,    parent_slug: aquatic }
+  - { slug: ozonic,      name: Ozonic,      parent_slug: aquatic }
