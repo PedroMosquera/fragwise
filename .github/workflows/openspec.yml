@@ -1,0 +1,41 @@
+name: openspec
+
+on:
+  pull_request:
+
+jobs:
+  proposal-presence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assert every new openspec change has a proposal.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          # Directories under openspec/changes/ touched by this PR (excluding archive).
+          changed_dirs=$(git diff --name-only "$base" "$head" \
+            | awk -F/ '/^openspec\/changes\/[^/]+\// && $3 != "archive" { print $1"/"$2"/"$3 }' \
+            | sort -u)
+          if [ -z "$changed_dirs" ]; then
+            echo "No openspec changes touched. OK."
+            exit 0
+          fi
+          missing=()
+          for d in $changed_dirs; do
+            if [ ! -f "$d/proposal.md" ]; then
+              missing+=("$d")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::The following openspec change directories are missing proposal.md:"
+            for m in "${missing[@]}"; do
+              echo "  - $m"
+            done
+            exit 1
+          fi
+          echo "All touched openspec change directories contain proposal.md."

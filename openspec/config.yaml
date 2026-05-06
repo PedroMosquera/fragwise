@@ -2,13 +2,13 @@ schema: spec-driven
 
 context: |
   Fragwise: open-source fragrance discovery + database with AI chatbot guide.
-  Monorepo: apps/web (Next.js 15 + Tailwind + shadcn), apps/api (Python FastAPI + LangGraph),
+  Monorepo: apps/web (Next.js 16 + Tailwind v4 + shadcn), apps/api (Python FastAPI + LangGraph 1.x),
   packages/ontology (notes/accords taxonomy), data/ (seed datasets and ingestion scripts).
   Data: Neon Postgres + pgvector (catalog and embeddings), Upstash Redis (cache + rate limit),
-  Cloudflare R2 (images). Auth: Clerk. LLM: OpenAI. Hosting: Vercel + Fly.io.
+  Cloudflare R2 (images). Auth: Clerk. LLM: OpenAI.
+  Hosting: Vercel (web) + Fly.io (api) on pay-as-you-go, scale-to-zero machines.
   Self-hostable via docker-compose.
   License: Apache-2.0.
-  Hosting: Vercel (web) + Fly.io (api) on pay-as-you-go, scale-to-zero machines.
 
 strict_tdd: false
 
