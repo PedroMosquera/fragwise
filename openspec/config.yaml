@@ -1,0 +1,76 @@
+schema: spec-driven
+
+context: |
+  Fragwise: open-source fragrance discovery + database with AI chatbot guide.
+  Monorepo: apps/web (Next.js 15 + Tailwind + shadcn), apps/api (Python FastAPI + LangGraph),
+  packages/ontology (notes/accords taxonomy), data/ (seed datasets and ingestion scripts).
+  Data: Neon Postgres + pgvector (catalog and embeddings), Upstash Redis (cache + rate limit),
+  Cloudflare R2 (images). Auth: Clerk. LLM: OpenAI. Hosting: Vercel + Fly.io.
+  Self-hostable via docker-compose.
+  License: Apache-2.0.
+  Hosting: Vercel (web) + Fly.io (api) on pay-as-you-go, scale-to-zero machines.
+
+strict_tdd: false
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages (apps/web, apps/api, packages/ontology, data)
+    - Note free-tier resource impact (DB rows, Redis ops, OpenAI tokens)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Cover both connoisseur and beginner user stories where applicable
+  design:
+    - Include sequence diagrams for complex flows (especially the LangGraph agent)
+    - Document architecture decisions with rationale
+    - Specify token budget and rate-limit posture for any LLM call path
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing, ops)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills (frontend-design for UI, context7 for library APIs)
+    - For libraries/SDKs/CLIs, use context7 (resolve-library-id then query-docs) before writing code
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+    - Verify free-tier limits not breached for any new resource
+  archive:
+    - Warn before merging destructive deltas (large removals)
+
+testing:
+  strict_tdd: false
+  detected: 2026-05-06
+  test_runner:
+    framework: not_installed
+    command: not_installed
+  layers:
+    unit:
+      available: false
+      tool: null
+    integration:
+      available: false
+      tool: null
+    e2e:
+      available: false
+      tool: null
+  coverage:
+    available: false
+    command: null
+  quality:
+    linter:
+      available: false
+      command: null
+    type_checker:
+      available: false
+      command: null
+    formatter:
+      available: false
+      command: null
+  notes: |
+    Empty repo at init time. Test infrastructure will be added in Phase 0 (foundation):
+    pytest + httpx for apps/api, vitest + @testing-library + Playwright for apps/web,
+    ruff + mypy for Python, eslint + tsc for TypeScript. Re-run sdd-init or update this
+    block after Phase 0 lands.
