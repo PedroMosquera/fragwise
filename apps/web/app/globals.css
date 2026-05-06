@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 is CSS-first. Theme tokens go in @theme blocks below as the
+ * design system grows. shadcn primitives generate their own CSS variables
+ * via the `add` command.
+ */

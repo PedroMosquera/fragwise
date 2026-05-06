@@ -1,0 +1,11 @@
+# next
+.next/
+out/
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# misc
+*.tsbuildinfo
