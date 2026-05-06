@@ -60,3 +60,32 @@ db-down:
 # Open a psql shell in the running postgres container.
 db-shell:
     docker compose exec postgres psql -U fragwise -d fragwise
+
+# Apply migrations against the dev DB.
+db-migrate:
+    cd apps/api && uv run alembic upgrade head
+
+# Roll all migrations back.
+db-rollback:
+    cd apps/api && uv run alembic downgrade base
+
+# Drop and re-apply (dev only).
+db-reset:
+    cd apps/api && uv run alembic downgrade base
+    cd apps/api && uv run alembic upgrade head
+
+# Ingest ontology (notes + accords) idempotently.
+ingest:
+    cd apps/api && uv run python ../../data/scripts/ingest_ontology.py
+
+# Seed ~10 example fragrances idempotently.
+seed:
+    cd apps/api && uv run python ../../data/scripts/seed_minimal_fragrances.py
+
+# Embed fragrances using OpenAI. Requires OPENAI_API_KEY.
+embed:
+    cd apps/api && uv run python ../../data/scripts/embed_fragrances.py
+
+# Run integration tests (requires Docker).
+test-integration:
+    cd apps/api && uv run pytest -m integration
