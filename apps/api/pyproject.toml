@@ -11,10 +11,20 @@ dependencies = [
     "langgraph~=1.0.8",
     "httpx>=0.27,<1.0",
     "python-dotenv>=1.0,<2.0",
+    "sqlalchemy[asyncio]>=2.0.40,<3.0",
+    "asyncpg>=0.30,<1.0",
+    "alembic>=1.14,<2.0",
+    "pgvector>=0.4,<1.0",
+    "pydantic>=2.10,<3.0",
+    "pyyaml>=6.0,<7.0",
+    "openai>=1.55,<3.0",
+    "tenacity>=9.0,<10.0",
+    "uuid-utils>=0.10,<1.0",
+    "python-slugify>=8.0,<9.0",
 ]
 
 [project.optional-dependencies]
-# Empty in 0b. 0c will add `db = ["asyncpg", "sqlalchemy[asyncio]"]` etc.
+# Empty in 0c.
 
 [dependency-groups]
 dev = [
@@ -23,6 +33,8 @@ dev = [
     "pytest>=8.3,<9.0",
     "pytest-asyncio>=0.24,<1.0",
     "anyio>=4.6,<5.0",
+    "testcontainers[postgres]>=4.9,<5.0",
+    "types-pyyaml>=6.0,<7.0",
 ]
 
 [build-system]
@@ -58,8 +70,15 @@ plugins = []
 module = ["langgraph.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["pgvector.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not integration'"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: requires Docker; opt-in via -m integration",
+]
