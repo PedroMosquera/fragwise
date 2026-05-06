@@ -1,0 +1,42 @@
+# Local-dev infrastructure for Fragwise.
+# Production runs on Vercel (web) + Fly.io (api) + Neon (postgres) + Upstash (redis).
+# Compose only declares the two managed services that need local stand-ins.
+
+services:
+  postgres:
+    # Pinned to pg16 to match Neon's production major (Neon parity).
+    # Bump in lockstep with Neon, not ahead of it. See ADR-0009.
+    image: pgvector/pgvector:pg16
+    container_name: fragwise-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fragwise
+      POSTGRES_PASSWORD: fragwise
+      POSTGRES_DB: fragwise
+    ports:
+      - "5432:5432"
+    volumes:
+      - fragwise-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fragwise -d fragwise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fragwise-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - fragwise-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  fragwise-pgdata:
+  fragwise-redisdata:
