@@ -1,0 +1,43 @@
+# Delta for repo-skeleton
+
+## MODIFIED Requirements
+
+### Requirement: Application Code And Build Tooling Allowed Under Defined Paths
+
+The repository MAY contain application source files, build/dev tooling, schema migrations, ontology data, and operator scripts under explicitly permitted paths only. Permitted locations:
+
+- `apps/web/**` — TypeScript/TSX source, Next.js config, PostCSS config, ESLint flat config, Prettier config, vitest config, Playwright config, `package.json`.
+- `apps/api/**` — Python source, `pyproject.toml`, `uv.lock`, `Dockerfile`, ruff/mypy/pytest config.
+- `apps/api/alembic/**` — Alembic environment, script template, and revision files (Python).
+- `apps/api/alembic.ini` — Alembic configuration file at the api project root.
+- `apps/api/scripts/**` — Python operator scripts local to the api project (e.g. `emit_openapi.py`), plus optional `__init__.py`.
+- `data/scripts/**` — Python operator scripts for ingestion, seeding, and embeddings, plus optional `README.md` / `__init__.py`.
+- `data/seed/**` — Seed datasets in YAML or JSON consumed by `data/scripts/`.
+- `packages/ontology/**` — Ontology data files (`notes.yaml`, `accords.yaml`, `synonyms.json`), schema docs (`schema.md`), and (optional, forward-compatible) Python files if ontology is later promoted to a sibling package.
+- Repo root — `docker-compose.yml`, `justfile`.
+- `.github/workflows/**` — GitHub Actions workflow YAML files.
+
+Outside these paths, the original 0a constraints still hold (no stray `*.ts`, `*.tsx`, `*.py`, `*.sql`, `Dockerfile`, `Makefile`, or workflow files).
+
+(Previously: 0c permitted `apps/web/**`, `apps/api/**`, `apps/api/alembic/**`, `apps/api/alembic.ini`, `data/scripts/**`, `data/seed/**`, `packages/ontology/**`, repo-root `docker-compose.yml` / `justfile`, and `.github/workflows/**`. Phase 1 additionally permits `apps/api/scripts/**` for api-local operator scripts. The api routers under `apps/api/src/fragwise_api/api/**` are already covered by the existing `apps/api/**` permission.)
+
+#### Scenario: Permitted application and tooling files exist under defined paths
+
+- GIVEN a fresh clone after phase-1 lands
+- WHEN running `git ls-files`
+- THEN files matching `apps/web/**/*.{ts,tsx}`, `apps/api/**/*.py`, `apps/api/Dockerfile`, `apps/api/alembic/**/*.py`, `apps/api/alembic.ini`, `apps/api/scripts/**/*.py`, `data/scripts/**/*.py`, `data/seed/**/*.{yaml,json}`, `packages/ontology/**/*.{yaml,json,md,py}`, repo-root `docker-compose.yml`, repo-root `justfile`, and `.github/workflows/*.yml` MAY be present
+- AND no `*.ts`, `*.tsx`, `*.py`, `*.sql`, `Dockerfile`, or workflow file exists outside those permitted paths
+
+#### Scenario: Stray application file outside permitted paths is forbidden
+
+- GIVEN a fresh clone
+- WHEN searching for `*.ts`, `*.tsx`, or `*.py` files outside `apps/**`, `data/scripts/**`, `data/seed/**`, and `packages/ontology/**`
+- THEN no such files are tracked
+- AND searching for a `Makefile` at the repo root returns nothing
+
+#### Scenario: api-local operator scripts permitted
+
+- GIVEN `apps/api/scripts/emit_openapi.py` is tracked by git
+- WHEN running the path-policy verification check
+- THEN the file is accepted as a permitted application source file
+- AND no policy violation is reported
