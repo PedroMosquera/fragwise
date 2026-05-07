@@ -1,5 +1,13 @@
 # ~10 example fragrances for end-to-end smoke tests.
 # Real curated catalog data lands in a follow-up phase.
+#
+# `accords` is a list of accord slugs per fragrance (P1 addition).
+# `notes_hierarchy` declares depth-2 parent->child note relationships
+# (P1 R2-W5 addition: makes the depth-2 tree assertion testable).
+notes_hierarchy:
+  # parent slug -> list of child slugs already ingested via ontology.
+  citrus: [bergamot, lemon, grapefruit, orange]
+
 fragrances:
   - slug: chanel-no-5
     name: "No. 5"
@@ -14,6 +22,7 @@ fragrances:
       top: [bergamot, lemon]
       heart: [jasmine, rose]
       base: [sandalwood, vanilla]
+    accords: [floral]
 
   - slug: dior-sauvage
     name: Sauvage
@@ -28,6 +37,7 @@ fragrances:
       top: [bergamot]
       heart: [iris]
       base: [cedarwood]
+    accords: [woody, aromatic]
 
   - slug: creed-aventus
     name: Aventus
@@ -42,6 +52,7 @@ fragrances:
       top: [bergamot, grapefruit]
       heart: [jasmine, rose]
       base: [oud, vanilla]
+    accords: [woody, fruity]
 
   - slug: tom-ford-tobacco-vanille
     name: Tobacco Vanille
@@ -55,6 +66,7 @@ fragrances:
       top: [orange]
       heart: [tonka, vanilla]
       base: [vanilla, tonka]
+    accords: [oriental, gourmand]
 
   - slug: ysl-libre
     name: Libre
@@ -70,6 +82,7 @@ fragrances:
       top: [orange, bergamot]
       heart: [jasmine]
       base: [vanilla, cedarwood]
+    accords: [floral, aromatic]
 
   - slug: jean-paul-gaultier-le-male
     name: Le Male
@@ -84,6 +97,7 @@ fragrances:
       top: [bergamot]
       heart: [iris]
       base: [vanilla, tonka]
+    accords: [fougere]
 
   - slug: maison-margiela-jazz-club
     name: "Replica Jazz Club"
@@ -97,6 +111,7 @@ fragrances:
       top: [orange]
       heart: [tonka]
       base: [vanilla, tonka]
+    accords: [gourmand, oriental]
 
   - slug: versace-eros
     name: Eros
@@ -111,6 +126,7 @@ fragrances:
       top: [lemon]
       heart: [tonka]
       base: [vanilla, vetiver, cedarwood]
+    accords: [aromatic, fresh]
 
   - slug: guerlain-shalimar
     name: Shalimar
@@ -126,6 +142,7 @@ fragrances:
       top: [bergamot, lemon]
       heart: [jasmine, rose, iris]
       base: [vanilla, tonka, sandalwood]
+    accords: [oriental, floral]
 
   - slug: byredo-gypsy-water
     name: "Gypsy Water"
@@ -140,3 +157,4 @@ fragrances:
       top: [bergamot, lemon]
       heart: [iris]
       base: [sandalwood, vanilla]
+    accords: [woody]

@@ -6,6 +6,8 @@ Reads ``data/seed/minimal_fragrances.yaml`` and UPSERTs:
 - fragrances   (keyed on slug; updates name/year/gender/concentration/description)
 - fragrance_notes      (keyed on (fragrance_id, note_id, role); diff-applied)
 - fragrance_perfumers  (keyed on (fragrance_id, perfumer_id); diff-applied)
+- fragrance_accords    (keyed on (fragrance_id, accord_id); diff-applied) [P1]
+- notes.parent_id     (depth-2 hierarchy from notes_hierarchy block) [P1]
 
 Notes referenced via slug MUST already exist (run ``just ingest`` first).
 ``source_hash`` per fragrance is computed via
@@ -17,9 +19,10 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 import yaml
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,9 +30,11 @@ from fragwise_api.db import compute_source_hash
 from fragwise_api.db.base import _uuid7
 from fragwise_api.db.enums import Gender, NoteRole
 from fragwise_api.db.models import (
+    Accord,
     Brand,
     Concentration,
     Fragrance,
+    FragranceAccord,
     FragranceNote,
     FragrancePerfumer,
     Note,
@@ -67,13 +72,13 @@ async def _upsert_fragrance(
     *,
     slug: str,
     name: str,
-    brand_id,
+    brand_id: Any,
     year_released: int | None,
     year_text: str | None,
     gender: Gender,
-    concentration_id,
+    concentration_id: Any,
     description: str | None,
-):
+) -> None:
     stmt = pg_insert(Fragrance.__table__).values(
         id=_uuid7(),
         slug=slug,
@@ -103,8 +108,8 @@ async def _upsert_fragrance(
 async def _sync_fragrance_notes(
     session: AsyncSession,
     *,
-    fragrance_id,
-    desired: list[tuple[object, NoteRole, int | None]],
+    fragrance_id: Any,
+    desired: list[tuple[Any, NoteRole, int | None]],
 ) -> None:
     """Reconcile fragrance_notes to exactly `desired` for this fragrance."""
     existing = (
@@ -119,7 +124,6 @@ async def _sync_fragrance_notes(
     existing_keys = {(row.note_id, row.role) for row in existing}
     desired_keys = {(nid, role) for nid, role, _pos in desired}
 
-    # Insert new
     to_add = [
         {
             "id": _uuid7(),
@@ -136,7 +140,6 @@ async def _sync_fragrance_notes(
             pg_insert(FragranceNote.__table__).values(to_add)
         )
 
-    # Delete removed
     for row in existing:
         if (row.note_id, row.role) not in desired_keys:
             await session.execute(
@@ -147,7 +150,7 @@ async def _sync_fragrance_notes(
 
 
 async def _sync_fragrance_perfumers(
-    session: AsyncSession, *, fragrance_id, desired_perfumer_ids: list
+    session: AsyncSession, *, fragrance_id: Any, desired_perfumer_ids: list[Any]
 ) -> None:
     existing = (
         await session.execute(
@@ -182,7 +185,44 @@ async def _sync_fragrance_perfumers(
             )
 
 
-def _notes_csv(entry: dict) -> str:
+async def _sync_fragrance_accords(
+    session: AsyncSession, *, fragrance_id: Any, desired_accord_ids: list[Any]
+) -> None:
+    """P1: Reconcile fragrance_accords for this fragrance."""
+    existing = (
+        await session.execute(
+            select(FragranceAccord.id, FragranceAccord.accord_id).where(
+                FragranceAccord.fragrance_id == fragrance_id
+            )
+        )
+    ).all()
+    existing_ids = {row.accord_id for row in existing}
+    desired_ids = set(desired_accord_ids)
+
+    to_add = [
+        {
+            "id": _uuid7(),
+            "fragrance_id": fragrance_id,
+            "accord_id": aid,
+        }
+        for aid in desired_accord_ids
+        if aid not in existing_ids
+    ]
+    if to_add:
+        await session.execute(
+            pg_insert(FragranceAccord.__table__).values(to_add)
+        )
+
+    for row in existing:
+        if row.accord_id not in desired_ids:
+            await session.execute(
+                FragranceAccord.__table__.delete().where(
+                    FragranceAccord.id == row.id
+                )
+            )
+
+
+def _notes_csv(entry: dict[str, Any]) -> str:
     """Alphabetized comma-joined slug list across all roles. Matches embed."""
     notes_block = entry.get("notes") or {}
     all_slugs = []
@@ -196,6 +236,7 @@ async def main() -> None:
     sm = make_sessionmaker(engine)
     raw = yaml.safe_load(SEED_PATH.read_text())
     fragrances_data = raw.get("fragrances") or []
+    notes_hierarchy = raw.get("notes_hierarchy") or {}
 
     async with sm() as session:
         # Concentration slug -> id map
@@ -249,18 +290,39 @@ async def main() -> None:
         ).all()
         frag_id_by_slug = {r.slug: r.id for r in frag_rows}
 
-        # Resolve note ids
+        # Resolve note + accord ids
         note_rows = (
             await session.execute(select(Note.slug, Note.id))
         ).all()
         note_id_by_slug = {r.slug: r.id for r in note_rows}
+        accord_rows = (
+            await session.execute(select(Accord.slug, Accord.id))
+        ).all()
+        accord_id_by_slug = {r.slug: r.id for r in accord_rows}
 
-        # Pass 3: notes + perfumers joins
+        # Pass 2b: depth-2 note hierarchy (P1 R2-W5)
+        for parent_slug, child_slugs in notes_hierarchy.items():
+            if parent_slug not in note_id_by_slug:
+                # ontology may not seed every parent slug used here; skip
+                # silently to keep the seed idempotent across ontology
+                # versions.
+                continue
+            parent_id = note_id_by_slug[parent_slug]
+            for child_slug in child_slugs or []:
+                if child_slug not in note_id_by_slug:
+                    continue
+                await session.execute(
+                    update(Note.__table__)
+                    .where(Note.__table__.c.slug == child_slug)
+                    .values(parent_id=parent_id)
+                )
+
+        # Pass 3: notes + perfumers + accords joins
         for entry in fragrances_data:
             fid = frag_id_by_slug[entry["slug"]]
             notes_block = entry.get("notes") or {}
 
-            desired_notes: list[tuple[object, NoteRole, int | None]] = []
+            desired_notes: list[tuple[Any, NoteRole, int | None]] = []
             for role_str in ("top", "heart", "base"):
                 slugs = notes_block.get(role_str) or []
                 for pos, ns in enumerate(slugs):
@@ -286,8 +348,20 @@ async def main() -> None:
                 desired_perfumer_ids=desired_perfs,
             )
 
+            # P1: accords
+            desired_accords_ids = []
+            for accord_slug in entry.get("accords") or []:
+                if accord_slug not in accord_id_by_slug:
+                    # ontology may not seed every accord slug; skip silently.
+                    continue
+                desired_accords_ids.append(accord_id_by_slug[accord_slug])
+            await _sync_fragrance_accords(
+                session,
+                fragrance_id=fid,
+                desired_accord_ids=desired_accords_ids,
+            )
+
         # Compute source_hash per fragrance for downstream embed step.
-        # We log/print the hash; embed_fragrances.py recomputes from DB state.
         for entry in fragrances_data:
             h = compute_source_hash(
                 entry["name"],
