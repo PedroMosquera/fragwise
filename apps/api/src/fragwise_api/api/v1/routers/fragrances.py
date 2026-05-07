@@ -1,10 +1,15 @@
-"""GET /api/v1/fragrances and /api/v1/fragrances/{slug}."""
+"""GET /api/v1/fragrances and /api/v1/fragrances/{slug}.
+
+Phase 2 also lands `POST /api/v1/fragrances/{slug}/similar` here; the heavy
+lifting lives in `fragwise_api.search.router.handle_similar` so this file
+stays focused on URL plumbing and response shapes.
+"""
 
 from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Request
 from sqlalchemy import Select, select
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -19,6 +24,9 @@ from fragwise_api.db.models import (
     Note,
     Perfumer,
 )
+from fragwise_api.search.rate_limit import limiter, per_ip_rate
+from fragwise_api.search.router import RedisDep, SessionDep, handle_similar
+from fragwise_api.search.schemas import SearchResponse, SimilarRequest
 
 from ..deps import DbSession
 from ..errors import not_found
@@ -109,6 +117,23 @@ async def list_fragrances(
             has_next=query.offset + query.limit < total,
         ),
     )
+
+
+@router.post("/{slug}/similar", response_model=SearchResponse)
+@limiter.limit(per_ip_rate)  # callable → re-read env each request
+async def similar_fragrances(
+    request: Request,
+    slug: SLUG,
+    body: SimilarRequest,
+    session: SessionDep,
+    redis: RedisDep,
+) -> SearchResponse:
+    """Return fragrances similar to `{slug}` using its stored embedding.
+
+    Shares the per-IP rate limit and daily kill-switch with `/search`.
+    Does NOT call OpenAI: the embedding is loaded from `fragrance_embeddings`.
+    """
+    return await handle_similar(slug=slug, body=body, session=session, redis=redis)
 
 
 @router.get("/{slug}", response_model=FragranceDetail)

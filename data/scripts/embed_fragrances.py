@@ -42,10 +42,18 @@ from fragwise_api.db.models import (
     Note,
 )
 from fragwise_api.db.session import make_engine, make_sessionmaker
+from fragwise_api.search.constants import (
+    EMBEDDING_DIMENSIONS,
+    EMBEDDING_MODEL,
+    EMBEDDING_VIEW,
+)
 
-MODEL = "text-embedding-3-small"
-DIMENSIONS = 512
-VIEW = "combined"
+# Re-export under the names the script + tests expect. ADR-0031: the
+# canonical values live in `fragwise_api.search.constants`; this module
+# only aliases them so the parity test can assert equality directly.
+MODEL = EMBEDDING_MODEL
+DIMENSIONS = EMBEDDING_DIMENSIONS
+VIEW = EMBEDDING_VIEW
 BATCH = 100
 
 

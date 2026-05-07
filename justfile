@@ -61,6 +61,22 @@ db-down:
 db-shell:
     docker compose exec postgres psql -U fragwise -d fragwise
 
+# Bring up redis only (for search rate limiter + cache work).
+redis-up:
+    docker compose up -d redis
+
+# Stop and remove the redis container (volume preserved).
+redis-down:
+    docker compose stop redis
+
+# Open a redis-cli shell in the running redis container.
+redis-shell:
+    docker compose exec redis redis-cli
+
+# Stub: future load benchmark for /api/v1/search.
+search-bench:
+    @echo "TODO: implement search bench"
+
 # Apply migrations against the dev DB.
 db-migrate:
     cd apps/api && uv run alembic upgrade head

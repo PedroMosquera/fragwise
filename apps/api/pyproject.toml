@@ -17,10 +17,12 @@ dependencies = [
     "pgvector>=0.4,<1.0",
     "pydantic>=2.10,<3.0",
     "pyyaml>=6.0,<7.0",
-    "openai>=1.55,<3.0",
+    "openai>=2.11,<3.0",
     "tenacity>=9.0,<10.0",
     "uuid-utils>=0.10,<1.0",
     "python-slugify>=8.0,<9.0",
+    "slowapi>=0.1.9,<1.0",
+    "redis>=5,<7",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +37,7 @@ dev = [
     "anyio>=4.6,<5.0",
     "testcontainers[postgres]>=4.9,<5.0",
     "types-pyyaml>=6.0,<7.0",
+    "fakeredis>=2.20,<3.0",
 ]
 
 [build-system]

@@ -8,14 +8,23 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
+import redis.asyncio as redis_asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from openai import AsyncOpenAI
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 
 from fragwise_api.api.v1 import api_router
 from fragwise_api.api.v1.errors import install_error_handlers
 from fragwise_api.db.session import make_engine, make_sessionmaker
+from fragwise_api.search.rate_limit import (
+    limiter,
+    rate_limit_exceeded_handler,
+    set_storage_uri,
+)
+from fragwise_api.search.router import router as search_router
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +34,34 @@ OPENAPI_VERSION = "0.1.0"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Single source of truth for the engine + sessionmaker."""
+    """Single source of truth for engine + Redis + OpenAI + slowapi limiter.
+
+    P0c established the engine/sessionmaker. P2 layers on:
+      - `app.state.redis`: shared `redis.asyncio.Redis` for cache + counters
+      - `app.state.openai_client`: shared `AsyncOpenAI` for query embeddings
+      - `app.state.limiter`: slowapi `Limiter` backed by the same Redis URL
+    """
     engine = make_engine()
     app.state.db_engine = engine
     app.state.db_sessionmaker = make_sessionmaker(engine)
+
+    redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    app.state.redis = redis_asyncio.Redis.from_url(redis_url, decode_responses=False)
+    # AsyncOpenAI raises if `OPENAI_API_KEY` is unset; allow a placeholder
+    # so test environments and dev probes (e.g. /readyz) can boot the app
+    # without an embedding API key. Real embed calls still fail loudly.
+    openai_key = os.environ.get("OPENAI_API_KEY", "test-placeholder-not-real")
+    app.state.openai_client = AsyncOpenAI(api_key=openai_key)
+    # Rebind the module-level limiter's storage so the decorators applied
+    # at route-definition time pick up the prod Redis URL.
+    set_storage_uri(redis_url)
+    app.state.limiter = limiter
+
     try:
         yield
     finally:
+        await app.state.openai_client.close()
+        await app.state.redis.aclose()
         await engine.dispose()
 
 
@@ -66,6 +96,8 @@ def create_app() -> FastAPI:
     )
 
     install_error_handlers(app)
+    # P2: slowapi raises RateLimitExceeded on overage; map it to our envelope.
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, Any]:
@@ -90,6 +122,8 @@ def create_app() -> FastAPI:
             )
 
     app.include_router(api_router)
+    # P2: hybrid search endpoints (router prefix is `/api/v1`).
+    app.include_router(search_router)
     return app
 
 
