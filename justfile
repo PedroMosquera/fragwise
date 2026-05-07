@@ -89,3 +89,7 @@ embed:
 # Run integration tests (requires Docker).
 test-integration:
     cd apps/api && uv run pytest -m integration
+
+# Emit a deterministic apps/api/openapi.json snapshot.
+emit-openapi:
+    cd apps/api && uv run python scripts/emit_openapi.py

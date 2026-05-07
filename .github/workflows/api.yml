@@ -43,3 +43,13 @@ jobs:
 
       - name: Pytest
         run: uv run pytest
+
+      - name: Emit OpenAPI
+        run: uv run python scripts/emit_openapi.py
+
+      - name: OpenAPI drift gate
+        run: |
+          if ! git diff --exit-code openapi.json; then
+            echo "::error::apps/api/openapi.json is stale. Run 'just emit-openapi' and commit the diff."
+            exit 1
+          fi
