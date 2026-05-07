@@ -4,17 +4,14 @@ from __future__ import annotations
 
 import os
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING
 
+from fastapi import Request
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-
-if TYPE_CHECKING:
-    from fastapi import Request
 
 
 def _normalize(url: str) -> str:

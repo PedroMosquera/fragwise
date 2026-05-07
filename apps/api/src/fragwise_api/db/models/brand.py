@@ -20,6 +20,6 @@ class Brand(UUIDMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    fragrances: Mapped[list[Fragrance]] = relationship(back_populates="brand")
+    fragrances: Mapped[list[Fragrance]] = relationship(back_populates="brand", lazy="raise_on_sql")
 
     __table_args__ = (Index("ix_brands_slug", "slug", unique=True),)

@@ -6,7 +6,12 @@ from .brand import Brand
 from .concentration import Concentration
 from .embedding import FragranceEmbedding
 from .fragrance import Fragrance
-from .joins import FragranceArticle, FragranceNote, FragrancePerfumer
+from .joins import (
+    FragranceAccord,
+    FragranceArticle,
+    FragranceNote,
+    FragrancePerfumer,
+)
 from .note import Note
 from .perfumer import Perfumer
 
@@ -16,6 +21,7 @@ __all__ = [
     "Brand",
     "Concentration",
     "Fragrance",
+    "FragranceAccord",
     "FragranceArticle",
     "FragranceEmbedding",
     "FragranceNote",
