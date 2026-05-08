@@ -1,19 +1,18 @@
 import Link from "next/link";
 import { Container } from "@/components/site/Container";
 import { FragranceCard } from "@/components/catalog/FragranceCard";
+import { ArticleCard } from "@/components/editorial/ArticleCard";
 import {
   getFeaturedFragrances,
+  getAllArticles,
   type FragranceListItem,
+  type ArticleSummary,
 } from "@/lib/api/fetchers";
 
-// F2: 6 mood slugs hardcoded. After `just ingest && just seed`, run
-// a smoke fetch (e.g. `GET /api/v1/fragrances?accord=fresh`) to
-// confirm each slug exists in the seeded `accords` table. If any are
-// missing (e.g. seed uses `oud-woody` instead of `woody`), either
-// update this list to match seeded slugs or extend the seed YAML.
-// Apply-time reality: ontology was seeded by Phase 0c with these
-// canonical accord slugs (see data/seed). The 6 below are the
-// canonical accord families.
+// Phase 4b update: mood tile hrefs flip from `/fragrances?accord=<slug>`
+// (P4a fallback) to `/accords/<slug>` now that real curated detail
+// pages ship with this phase. Slugs match the seeded canonical accord
+// families.
 const MOODS = [
   { slug: "fresh", label: "Fresh & bright" },
   { slug: "woody", label: "Woody & smoky" },
@@ -28,13 +27,24 @@ export default async function HomePage() {
   // `next build` (CI without a live API, or transient outage), the
   // home shell still renders so the build does not fail. ISR will
   // refresh featured (revalidate: 600) once the API is back online.
-  // F11 contract: the fetcher throws on real errors; this catch is
-  // strictly a build-time surface fallback.
   let featured: FragranceListItem[] = [];
   try {
     featured = await getFeaturedFragrances(6);
   } catch (err) {
     console.warn("[home] getFeaturedFragrances failed — rendering empty.", err);
+  }
+
+  // Phase 4b: journal teaser — three most-recent articles. Same
+  // try/catch posture as `featured` so home still renders without API.
+  let recentArticles: ArticleSummary[] = [];
+  try {
+    const list = await getAllArticles({ limit: 3, offset: 0 });
+    recentArticles = list.data;
+  } catch (err) {
+    console.warn(
+      "[home] getAllArticles failed — empty journal teaser.",
+      err,
+    );
   }
 
   return (
@@ -78,12 +88,11 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {MOODS.map((m) => (
-              // 4b will ship `/accords/[slug]`. Until then, point at
-              // the filtered list which DOES exist in 4a — preserves
-              // intent (browse by mood) without 404s.
+              // Phase 4b: links to the curated /accords/[slug] page
+              // shipped this phase (was /fragrances?accord=<slug> in 4a).
               <Link
                 key={m.slug}
-                href={`/fragrances?accord=${m.slug}`}
+                href={`/accords/${m.slug}`}
                 className="group flex aspect-[5/3] items-end justify-between rounded-md border border-border bg-card p-5 transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <span className="font-display text-2xl">{m.label}</span>
@@ -121,18 +130,34 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Journal teaser placeholder for 4b */}
+      {/* Phase 4b: journal teaser — three most-recent articles. */}
       <section className="py-20">
         <Container>
-          <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-10">
-            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              From the journal
-            </p>
-            <p className="mt-4 font-display text-2xl">
-              Long-form essays on craft, history, and method.{" "}
-              <span className="text-muted-foreground">Coming with 4b.</span>
-            </p>
+          <div className="mb-8 flex items-end justify-between">
+            <h2 className="font-display text-3xl">From the journal</h2>
+            <Link
+              href="/articles"
+              className="font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-accent"
+            >
+              All essays →
+            </Link>
           </div>
+          {recentArticles.length === 0 ? (
+            <p className="text-muted-foreground">
+              No essays published yet. Check back soon.
+            </p>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {recentArticles.map((a) => (
+                <ArticleCard
+                  key={a.slug}
+                  slug={a.slug}
+                  title={a.title}
+                  publishedAt={a.published_at ?? null}
+                />
+              ))}
+            </div>
+          )}
         </Container>
       </section>
     </>

@@ -28,6 +28,9 @@
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.0",
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.4"
   },

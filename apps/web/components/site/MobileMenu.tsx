@@ -1,3 +1,7 @@
+// Phase 4b ADR-0044: MobileMenu accepts the NAV feature-flag map.
+// Items where `ready: true` render as `<Link>`; `ready: false` items
+// render as `<span aria-disabled>` carrying the same "Coming with
+// phase 4c+" hint as the desktop Header.
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -9,12 +13,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { NavItem } from "@/lib/site-nav";
 
-export function MobileMenu({
-  nav,
-}: {
-  nav: { href: string; label: string; placeholder?: boolean }[];
-}) {
+export function MobileMenu({ nav }: { nav: readonly NavItem[] }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -33,18 +34,7 @@ export function MobileMenu({
         </SheetHeader>
         <nav className="mt-6 flex flex-col gap-3 px-4">
           {nav.map((item) =>
-            item.placeholder ? (
-              <span
-                key={item.href}
-                aria-disabled="true"
-                className="cursor-not-allowed text-base text-muted-foreground/50"
-              >
-                {item.label}
-                <span className="ml-2 font-mono text-[0.6rem] uppercase tracking-wider">
-                  4b
-                </span>
-              </span>
-            ) : (
+            item.ready ? (
               <Link
                 key={item.href}
                 href={item.href}
@@ -52,6 +42,15 @@ export function MobileMenu({
               >
                 {item.label}
               </Link>
+            ) : (
+              <span
+                key={item.href}
+                aria-disabled="true"
+                title="Coming with phase 4c+"
+                className="cursor-not-allowed text-base text-muted-foreground/50"
+              >
+                {item.label}
+              </span>
             ),
           )}
         </nav>

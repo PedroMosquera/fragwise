@@ -2,21 +2,19 @@
 // is the only client child; Radix Sheet inside MobileMenu lazy-renders
 // its portal natively on `open`, so no `next/dynamic` wrapper is
 // needed.
+//
+// Phase 4b ADR-0044: NAV is now imported from `@/lib/site-nav`. Each
+// entry carries `ready: boolean`. `ready: true` items render as a
+// NavLink (small client subcomponent that adds `aria-current="page"`
+// when the pathname matches). `ready: false` items render as a
+// non-interactive `<span aria-disabled="true">` carrying
+// `title="Coming with phase 4c+"`.
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { NAV } from "@/lib/site-nav";
 import { MobileMenu } from "./MobileMenu";
-
-const NAV: { href: string; label: string; placeholder?: boolean }[] = [
-  { href: "/", label: "Home" },
-  { href: "/fragrances", label: "Fragrances" },
-  // 4b targets — render as non-interactive labels until those routes ship.
-  { href: "/notes", label: "Notes", placeholder: true },
-  { href: "/accords", label: "Accords", placeholder: true },
-  { href: "/brands", label: "Brands", placeholder: true },
-  { href: "/perfumers", label: "Perfumers", placeholder: true },
-  { href: "/articles", label: "Journal", placeholder: true },
-];
+import { NavLink } from "./NavLink";
 
 export function Header() {
   return (
@@ -30,26 +28,23 @@ export function Header() {
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {NAV.map((item) =>
-            item.placeholder ? (
-              // 4b targets — render as non-interactive labels until those
-              // routes ship. Avoids 404s on click while signalling the
-              // surface is planned.
+            item.ready ? (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:text-foreground"
+              >
+                {item.label}
+              </NavLink>
+            ) : (
               <span
                 key={item.href}
                 aria-disabled="true"
-                title="Coming with phase 4b"
+                title="Coming with phase 4c+"
                 className="cursor-not-allowed text-sm text-muted-foreground/50"
               >
                 {item.label}
               </span>
-            ) : (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </Link>
             ),
           )}
         </nav>

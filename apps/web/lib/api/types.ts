@@ -106,6 +106,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chat
+         * @description Stream a fragrance recommendation turn as SSE events.
+         *
+         *     Pre-stream gates run in this order (all errors return JSON envelopes
+         *     BEFORE the stream opens):
+         *
+         *       1. Pydantic body validation (last-must-be-user, char + count caps).
+         *       2. tiktoken per-message token count vs `MAX_TOKENS_PER_MESSAGE`.
+         *       3. Redis daily kill-switch INCR + cap.
+         *       4. slowapi per-IP h + d windows (decorators above).
+         */
+        post: operations["chat_api_v1_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/fragrances": {
         parameters: {
             query?: never;
@@ -353,6 +381,34 @@ export interface components {
             name: string;
             /** Slug */
             slug: string;
+        };
+        /**
+         * ChatMessage
+         * @description One conversation message. `role=user|assistant|system` per the
+         *     api-app spec request body. `content` is char-capped here as a cheap
+         *     pre-check before tokenization (see `MAX_TOKENS_PER_MESSAGE`).
+         */
+        ChatMessage: {
+            /** Content */
+            content: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant" | "system";
+        };
+        /**
+         * ChatRequest
+         * @description `POST /api/v1/chat` body.
+         *
+         *     `session_id` is opaque telemetry per agent spec "No Checkpointer In V1"
+         *     — never used to drive any state-store read or write.
+         */
+        ChatRequest: {
+            /** Messages */
+            messages: components["schemas"]["ChatMessage"][];
+            /** Session Id */
+            session_id?: string | null;
         };
         /** ConcentrationSummary */
         ConcentrationSummary: {
@@ -791,6 +847,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BrandDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_api_v1_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

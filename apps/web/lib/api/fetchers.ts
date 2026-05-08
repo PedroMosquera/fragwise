@@ -8,6 +8,24 @@ export type Pagination = components["schemas"]["Pagination"];
 export type Gender = components["schemas"]["Gender"];
 export type AccordSummary = components["schemas"]["AccordSummary"];
 export type BrandSummary = components["schemas"]["BrandSummary"];
+// Phase 4b additions:
+export type NoteTreeNode = components["schemas"]["NoteTreeNode"];
+export type NoteDetail = components["schemas"]["NoteDetail"];
+export type AccordDetail = components["schemas"]["AccordDetail"];
+export type BrandDetail = components["schemas"]["BrandDetail"];
+export type PerfumerDetail = components["schemas"]["PerfumerDetail"];
+export type PerfumerSummary = components["schemas"]["PerfumerSummary"];
+export type ArticleSummary = components["schemas"]["ArticleSummary"];
+export type ArticleDetail = components["schemas"]["ArticleDetail"];
+
+export interface PaginatedListParams {
+  limit?: number;
+  offset?: number;
+}
+
+export interface QSearchParams extends PaginatedListParams {
+  q?: string;
+}
 
 export interface FragranceListParams {
   limit?: number;
@@ -161,4 +179,191 @@ export async function getFeaturedFragrances(limit = 6) {
     throw new Error("getFeaturedFragrances returned no data");
   }
   return data.data;
+}
+
+// =============================================================
+// Phase 4b — Taxonomy fetchers (notes, accords, brands, perfumers,
+// articles). ISR posture per ADR-0045. notFound() propagation per
+// ADR-0046.
+// =============================================================
+
+/** GET /api/v1/notes — full recursive tree. */
+export async function getAllNotes(): Promise<NoteTreeNode[]> {
+  const { data, response } = await apiClient.GET("/api/v1/notes", {
+    next: { revalidate: 3600, tags: ["notes:tree"] },
+  });
+  if (!response.ok) {
+    throw new Error(`getAllNotes failed (${response.status})`);
+  }
+  return data?.data ?? [];
+}
+
+/** GET /api/v1/notes/{slug} — note detail; calls notFound() on 404. */
+export async function getNoteBySlug(
+  slug: string,
+  params: PaginatedListParams = {},
+) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/notes/{slug}",
+    {
+      params: { path: { slug }, query: params },
+      next: { revalidate: 600, tags: [`note:${slug}`] },
+    },
+  );
+  if (response.status === 404) notFound();
+  if (error) {
+    throw new Error(
+      `getNoteBySlug(${slug}) failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) notFound();
+  return data;
+}
+
+/** GET /api/v1/accords/{slug} — accord detail; calls notFound() on 404. */
+export async function getAccordBySlug(
+  slug: string,
+  params: PaginatedListParams = {},
+) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/accords/{slug}",
+    {
+      params: { path: { slug }, query: params },
+      next: { revalidate: 600, tags: [`accord:${slug}`] },
+    },
+  );
+  if (response.status === 404) notFound();
+  if (error) {
+    throw new Error(
+      `getAccordBySlug(${slug}) failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) notFound();
+  return data;
+}
+
+/**
+ * GET /api/v1/brands — paginated list. Supports `q` for case-insensitive
+ * substring filter (handled API-side). When `q` is present we drop the
+ * revalidate window from 3600s to 600s so search results refresh sooner.
+ */
+export async function getBrands(params: QSearchParams = {}) {
+  const hasQ = typeof params.q === "string" && params.q.length > 0;
+  const { data, error, response } = await apiClient.GET("/api/v1/brands", {
+    params: { query: params },
+    next: {
+      revalidate: hasQ ? 600 : 3600,
+      tags: ["brands:list"],
+    },
+  });
+  if (error) {
+    throw new Error(
+      `getBrands failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) {
+    throw new Error("getBrands returned no data");
+  }
+  return data;
+}
+
+/** GET /api/v1/brands/{slug} — brand detail; calls notFound() on 404. */
+export async function getBrandBySlug(
+  slug: string,
+  params: PaginatedListParams = {},
+) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/brands/{slug}",
+    {
+      params: { path: { slug }, query: params },
+      next: { revalidate: 1800, tags: [`brand:${slug}`] },
+    },
+  );
+  if (response.status === 404) notFound();
+  if (error) {
+    throw new Error(
+      `getBrandBySlug(${slug}) failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) notFound();
+  return data;
+}
+
+/** GET /api/v1/perfumers — paginated list with optional `q`. */
+export async function getPerfumers(params: QSearchParams = {}) {
+  const hasQ = typeof params.q === "string" && params.q.length > 0;
+  const { data, error, response } = await apiClient.GET("/api/v1/perfumers", {
+    params: { query: params },
+    next: {
+      revalidate: hasQ ? 600 : 3600,
+      tags: ["perfumers:list"],
+    },
+  });
+  if (error) {
+    throw new Error(
+      `getPerfumers failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) {
+    throw new Error("getPerfumers returned no data");
+  }
+  return data;
+}
+
+/** GET /api/v1/perfumers/{slug} — perfumer detail; calls notFound() on 404. */
+export async function getPerfumerBySlug(
+  slug: string,
+  params: PaginatedListParams = {},
+) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/perfumers/{slug}",
+    {
+      params: { path: { slug }, query: params },
+      next: { revalidate: 1800, tags: [`perfumer:${slug}`] },
+    },
+  );
+  if (response.status === 404) notFound();
+  if (error) {
+    throw new Error(
+      `getPerfumerBySlug(${slug}) failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) notFound();
+  return data;
+}
+
+/** GET /api/v1/articles — paginated list ordered by published_at DESC. */
+export async function getAllArticles(params: PaginatedListParams = {}) {
+  const { data, error, response } = await apiClient.GET("/api/v1/articles", {
+    params: { query: params },
+    next: { revalidate: 600, tags: ["articles:list"] },
+  });
+  if (error) {
+    throw new Error(
+      `getAllArticles failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) {
+    throw new Error("getAllArticles returned no data");
+  }
+  return data;
+}
+
+/** GET /api/v1/articles/{slug} — article detail; calls notFound() on 404. */
+export async function getArticleBySlug(slug: string) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/articles/{slug}",
+    {
+      params: { path: { slug } },
+      next: { revalidate: 600, tags: [`article:${slug}`] },
+    },
+  );
+  if (response.status === 404) notFound();
+  if (error) {
+    throw new Error(
+      `getArticleBySlug(${slug}) failed (${response.status}): ${JSON.stringify(error)}`,
+    );
+  }
+  if (!data) notFound();
+  return data;
 }
