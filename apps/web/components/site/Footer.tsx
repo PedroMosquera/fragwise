@@ -1,7 +1,4 @@
-// Open Question (per design.md): GitHub URL is a placeholder pending
-// confirmation of the canonical org/repo. Update this single constant
-// when the canonical URL is decided.
-const REPO = "https://github.com/Iam2Fast/fragwise";
+const REPO = "https://github.com/PedroMosquera/fragwise";
 
 export function Footer() {
   return (
