@@ -1,7 +1,68 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
 /*
- * Tailwind v4 is CSS-first. Theme tokens go in @theme blocks below as the
- * design system grows. shadcn primitives generate their own CSS variables
- * via the `add` command.
+ * Tailwind v4 @theme: map our tokens into Tailwind's design system
+ * so utility classes (bg-background, text-foreground, font-display)
+ * resolve to our CSS variables.
  */
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-popover: var(--color-popover);
+  --color-popover-foreground: var(--color-popover-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-border: var(--color-border);
+  --color-input: var(--color-input);
+  --color-ring: var(--color-ring);
+
+  --radius: var(--radius-md);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* Base typography */
+html {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), serif;
+  letter-spacing: -0.01em;
+}
+
+code,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+/* a11y: visible focus ring on every focusable */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}

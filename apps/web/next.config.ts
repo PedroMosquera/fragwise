@@ -2,7 +2,21 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // No transpilePackages: 0b has no shared workspace packages emitting code into web.
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.fragwise.app",
+        pathname: "/**",
+      },
+      // Local dev fallback for placeholder paths under /public:
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -13,6 +13,7 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "lint": "pnpm --filter web lint && pnpm --filter web typecheck",
-    "test": "pnpm --filter web test"
+    "test": "pnpm --filter web test",
+    "web:generate-types": "pnpm --filter web generate-api-types"
   }
 }
