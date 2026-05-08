@@ -23,6 +23,7 @@ dependencies = [
     "python-slugify>=8.0,<9.0",
     "slowapi>=0.1.9,<1.0",
     "redis>=5,<7",
+    "tiktoken>=0.7,<1.0",
 ]
 
 [project.optional-dependencies]

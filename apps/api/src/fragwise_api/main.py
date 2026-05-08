@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import redis.asyncio as redis_asyncio
+import tiktoken
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,6 +17,8 @@ from openai import AsyncOpenAI
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 
+from fragwise_api.agent.rate_limit import chat_limiter, set_chat_storage_uri
+from fragwise_api.agent.router import router as chat_router
 from fragwise_api.api.v1 import api_router
 from fragwise_api.api.v1.errors import install_error_handlers
 from fragwise_api.db.session import make_engine, make_sessionmaker
@@ -56,6 +59,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # at route-definition time pick up the prod Redis URL.
     set_storage_uri(redis_url)
     app.state.limiter = limiter
+    # P3: chat limiter shares the same Redis URL but lives on a separate
+    # `Limiter` instance so the chat-specific multi-window decorators
+    # (5/h AND 20/d) don't leak into the search route's budget.
+    set_chat_storage_uri(redis_url)
+    app.state.chat_limiter = chat_limiter
+    # ADR-0038: cache the tiktoken encoder at lifespan; reused across
+    # requests. `gpt-4o-mini` resolves to `o200k_base`.
+    app.state.tiktoken_encoder = tiktoken.encoding_for_model("gpt-4o-mini")
 
     try:
         yield
@@ -124,6 +135,8 @@ def create_app() -> FastAPI:
     app.include_router(api_router)
     # P2: hybrid search endpoints (router prefix is `/api/v1`).
     app.include_router(search_router)
+    # P3: chat endpoint (router prefix is `/api/v1`).
+    app.include_router(chat_router)
     return app
 
 

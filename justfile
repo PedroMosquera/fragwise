@@ -113,3 +113,11 @@ emit-openapi:
 # Regenerate apps/web/lib/api/types.ts from apps/api/openapi.json.
 generate-types:
     pnpm --filter web generate-api-types
+
+# Manual smoke against a running local server with a real OPENAI_API_KEY.
+# NEVER runs in CI. The -N flag disables curl's output buffering so the
+# SSE stream prints token-by-token.
+chat-shell MSG="smoky leather for winter":
+    curl -N -X POST http://localhost:8000/api/v1/chat \
+        -H "Content-Type: application/json" \
+        -d '{"messages":[{"role":"user","content":"{{MSG}}"}]}'
