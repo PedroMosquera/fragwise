@@ -109,3 +109,7 @@ test-integration:
 # Emit a deterministic apps/api/openapi.json snapshot.
 emit-openapi:
     cd apps/api && uv run python scripts/emit_openapi.py
+
+# Regenerate apps/web/lib/api/types.ts from apps/api/openapi.json.
+generate-types:
+    pnpm --filter web generate-api-types

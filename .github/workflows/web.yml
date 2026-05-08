@@ -4,17 +4,13 @@ on:
   pull_request:
     paths:
       - "apps/web/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
+      - "apps/api/openapi.json"
       - ".github/workflows/web.yml"
   push:
     branches: [main]
     paths:
       - "apps/web/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
+      - "apps/api/openapi.json"
       - ".github/workflows/web.yml"
 
 jobs:
@@ -37,9 +33,33 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
+      - name: Setup uv (for OpenAPI re-emit)
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.9"
+
       - name: Install workspace
         working-directory: .
         run: pnpm install --frozen-lockfile
+
+      # S2 fix: re-emit upstream OpenAPI so a stale apps/api/openapi.json
+      # cannot make the types-stale check pass on a phantom contract.
+      - name: Re-emit OpenAPI and check upstream stale
+        working-directory: .
+        run: |
+          uv run --project apps/api python apps/api/scripts/emit_openapi.py
+          if ! git diff --exit-code apps/api/openapi.json; then
+            echo "::error::apps/api/openapi.json is stale. Run 'just emit-openapi' and commit."
+            exit 1
+          fi
+
+      - name: Generate API types and check stale
+        run: |
+          pnpm run generate-api-types
+          if ! git diff --exit-code lib/api/types.ts; then
+            echo "::error::apps/web/lib/api/types.ts is stale. Run 'just generate-types' and commit."
+            exit 1
+          fi
 
       - name: Lint
         run: pnpm lint
@@ -51,4 +71,7 @@ jobs:
         run: pnpm test
 
       - name: Build
-        run: pnpm build
+        run: pnpm exec next build
+
+      - name: Bundle budget
+        run: pnpm exec size-limit

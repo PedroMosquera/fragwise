@@ -1,0 +1,8 @@
+[
+  {
+    "name": "All static client chunks (gzipped)",
+    "path": ".next/static/chunks/*.js",
+    "limit": "600 KB",
+    "gzip": true
+  }
+]
