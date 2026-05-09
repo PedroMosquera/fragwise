@@ -36,14 +36,11 @@ export const metadata: Metadata = {
   ),
 };
 
-// R3 fix C4: only `viewport.colorScheme` should emit the meta tag.
-// The previous design also set `metadata.other["color-scheme"]`,
-// producing a duplicate `<meta name="color-scheme">`. Drop the
-// metadata.other path; rely on viewport.colorScheme alone (Next.js
-// 14+). Pair with `color-scheme: light` in tokens.css for the
-// CSS-side declaration. ADR-0037: 4a is light-only.
+// 4c (ADR-0050..0054): viewport.colorScheme covers both modes;
+// next-themes manages the runtime `color-scheme` style on <html>
+// based on the active theme class.
 export const viewport: Viewport = {
-  colorScheme: "light",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -59,8 +56,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
+          enableSystem={true}
           disableTransitionOnChange
         >
           {children}

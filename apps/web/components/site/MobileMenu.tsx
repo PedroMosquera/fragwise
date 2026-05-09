@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import type { NavItem } from "@/lib/site-nav";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function MobileMenu({ nav }: { nav: readonly NavItem[] }) {
   return (
@@ -54,6 +55,10 @@ export function MobileMenu({ nav }: { nav: readonly NavItem[] }) {
             ),
           )}
         </nav>
+        <div className="mt-6 flex items-center gap-3 border-t border-border px-4 pt-6">
+          <span className="text-xs text-muted-foreground font-mono">Theme</span>
+          <ThemeToggle />
+        </div>
       </SheetContent>
     </Sheet>
   );

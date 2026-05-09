@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { NAV } from "@/lib/site-nav";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   return (
@@ -62,6 +63,10 @@ export function Header() {
               className="w-64 pl-9 font-mono text-xs"
             />
           </label>
+          <ThemeToggle />
+        </div>
+        <div className="flex items-center md:hidden">
+          <ThemeToggle />
         </div>
         <MobileMenu nav={NAV} />
       </div>

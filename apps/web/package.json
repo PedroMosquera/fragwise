@@ -35,6 +35,7 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "^1.49.0",
     "@size-limit/file": "^11.0.0",
     "@tailwindcss/postcss": "^4.0.0",
