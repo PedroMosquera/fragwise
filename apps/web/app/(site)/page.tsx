@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import Link from "next/link";
 import { Container } from "@/components/site/Container";
 import { FragranceCard } from "@/components/catalog/FragranceCard";
@@ -22,14 +23,28 @@ const MOODS = [
   { slug: "aquatic", label: "Aquatic & cool" },
 ];
 
+// Same hue palette ImageFallback uses (ADR-0036): hash → band + jitter,
+// constant-L panel via the theme-aware --fallback-l / --fallback-fg
+// tokens so contrast holds in light + dark mode.
+const PANEL_BANDS = [25, 35, 45, 70, 200, 280];
+
+function moodPanelHue(slug: string): number {
+  const h = createHash("sha256").update(slug).digest("hex");
+  const band = parseInt(h.slice(0, 2), 16) % 6;
+  const jitter = (parseInt(h.slice(2, 4), 16) % 12) - 6;
+  return PANEL_BANDS[band] + jitter;
+}
+
 export default async function HomePage() {
   // Build-time graceful degradation: if the API is unreachable at
   // `next build` (CI without a live API, or transient outage), the
   // home shell still renders so the build does not fail. ISR will
   // refresh featured (revalidate: 600) once the API is back online.
+  // Fits one full row of the 4-col Featured grid (was 6, which left
+  // the second row half-empty with two orphaned offset cards).
   let featured: FragranceListItem[] = [];
   try {
-    featured = await getFeaturedFragrances(6);
+    featured = await getFeaturedFragrances(4);
   } catch (err) {
     console.warn("[home] getFeaturedFragrances failed — rendering empty.", err);
   }
@@ -87,23 +102,34 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {MOODS.map((m) => (
-              // Phase 4b: links to the curated /accords/[slug] page
-              // shipped this phase (was /fragrances?accord=<slug> in 4a).
-              <Link
-                key={m.slug}
-                href={`/accords/${m.slug}`}
-                className="group flex aspect-[5/3] items-end justify-between rounded-md border border-border bg-card p-5 transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <span className="font-display text-2xl">{m.label}</span>
-                <span
-                  aria-hidden
-                  className="font-mono text-xs uppercase tracking-wider opacity-60 group-hover:opacity-100"
+            {MOODS.map((m) => {
+              const hue = moodPanelHue(m.slug);
+              return (
+                // Phase 4b: links to the curated /accords/[slug] page
+                // shipped this phase (was /fragrances?accord=<slug> in 4a).
+                <Link
+                  key={m.slug}
+                  href={`/accords/${m.slug}`}
+                  className="group relative flex aspect-[5/3] items-end justify-between overflow-hidden rounded-md border border-border p-5 transition-transform hover:-translate-y-0.5"
+                  style={
+                    {
+                      "--fallback-h": String(hue),
+                      backgroundColor:
+                        "oklch(var(--fallback-l) 0.06 var(--fallback-h))",
+                      color: "var(--fallback-fg)",
+                    } as React.CSSProperties
+                  }
                 >
-                  →
-                </span>
-              </Link>
-            ))}
+                  <span className="font-display text-2xl">{m.label}</span>
+                  <span
+                    aria-hidden
+                    className="font-mono text-xs uppercase tracking-wider opacity-60 group-hover:opacity-100"
+                  >
+                    →
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </Container>
       </section>
@@ -115,17 +141,9 @@ export default async function HomePage() {
             Featured fragrances
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {featured.slice(0, 4).map((f) => (
+            {featured.map((f) => (
               <FragranceCard key={f.id} fragrance={f} />
             ))}
-            {featured.length >= 6 ? (
-              <>
-                <div className="hidden lg:block" />
-                {featured.slice(4, 6).map((f) => (
-                  <FragranceCard key={f.id} fragrance={f} />
-                ))}
-              </>
-            ) : null}
           </div>
         </Container>
       </section>
