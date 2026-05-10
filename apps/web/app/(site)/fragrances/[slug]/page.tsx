@@ -1,10 +1,16 @@
 import { createHash } from "node:crypto";
+import Link from "next/link";
 import { Container } from "@/components/site/Container";
 import { Pyramid } from "@/components/catalog/Pyramid";
 import { AccordBadge } from "@/components/catalog/AccordBadge";
+import { FragranceCard } from "@/components/catalog/FragranceCard";
 import { Glossary } from "@/components/site/Glossary";
 import { wrapGlossary } from "@/lib/glossary";
-import { getFragranceBySlug } from "@/lib/api/fetchers";
+import {
+  getFragrances,
+  getFragranceBySlug,
+  type FragranceListItem,
+} from "@/lib/api/fetchers";
 
 // S6 fix: editorial typographic hero fallback. Reuses ImageFallback's
 // constant-L oklch palette (ADR-0036) so the panel matches the card
@@ -60,6 +66,20 @@ export default async function FragranceDetailPage(props: {
 }) {
   const { slug } = await props.params;
   const f = await getFragranceBySlug(slug);
+
+  // Sibling fragrances from the same brand. With the v1 seed every
+  // brand carries exactly one fragrance, so siblings is usually empty —
+  // the section then collapses to a single "Explore the brand" link.
+  let siblings: FragranceListItem[] = [];
+  try {
+    const list = await getFragrances({ brand: f.brand.slug, limit: 5 });
+    siblings = list.data.filter((s) => s.slug !== f.slug).slice(0, 4);
+  } catch (err) {
+    console.warn(
+      `[fragrance:${slug}] sibling fetch failed — rendering brand link only.`,
+      err,
+    );
+  }
 
   return (
     <Container className="py-12 md:py-20">
@@ -140,14 +160,28 @@ export default async function FragranceDetailPage(props: {
         )}
       </section>
 
-      {/* "More from this brand" placeholder */}
-      <section className="mt-20 rounded-lg border border-dashed border-border bg-secondary/30 p-8">
-        <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          More from {f.brand.name}
-        </p>
-        <p className="mt-2 text-foreground/80">
-          Brand pages land in 4b. The list will populate then.
-        </p>
+      {/* More from this brand */}
+      <section className="mt-20">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 className="font-display text-2xl">More from {f.brand.name}</h2>
+          <Link
+            href={`/brands/${f.brand.slug}`}
+            className="font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-accent"
+          >
+            All {f.brand.name} →
+          </Link>
+        </div>
+        {siblings.length === 0 ? (
+          <p className="text-muted-foreground">
+            No other fragrances from {f.brand.name} in the catalogue yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {siblings.map((s) => (
+              <FragranceCard key={s.id} fragrance={s} />
+            ))}
+          </div>
+        )}
       </section>
     </Container>
   );
