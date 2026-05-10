@@ -10,8 +10,7 @@
 // non-interactive `<span aria-disabled="true">` carrying
 // `title="Coming with phase 4c+"`.
 import Link from "next/link";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { NAV } from "@/lib/site-nav";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
@@ -50,22 +49,11 @@ export function Header() {
           )}
         </nav>
         <div className="hidden items-center gap-3 md:flex">
-          <label className="relative">
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              type="search"
-              placeholder="Search coming soon"
-              disabled
-              aria-label="Search (coming soon)"
-              className="w-64 pl-9 font-mono text-xs"
-            />
-          </label>
+          <ChatLauncher />
           <ThemeToggle />
         </div>
-        <div className="flex items-center md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
+          <ChatLauncher />
           <ThemeToggle />
         </div>
         <MobileMenu nav={NAV} />

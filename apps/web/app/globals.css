@@ -67,3 +67,27 @@ samp,
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
 }
+
+/* Wisp avatar — drifting scent trail. Each path runs the same keyframe
+ * with its own delay (set inline) so the three wisps stagger naturally.
+ * `wisp-trail` rests slowly; `wisp-trail-active` runs faster while the
+ * agent is streaming. */
+@keyframes wisp-drift {
+  0% { transform: translateY(2px); opacity: 0.2; }
+  40% { opacity: 1; }
+  100% { transform: translateY(-3px); opacity: 0; }
+}
+.wisp-trail > path {
+  animation: wisp-drift 3.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.wisp-trail-active > path {
+  animation: wisp-drift 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wisp-trail > path,
+  .wisp-trail-active > path {
+    animation: none;
+  }
+}
