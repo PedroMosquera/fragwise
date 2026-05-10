@@ -5,9 +5,11 @@ import Link from "next/link";
 export function AccordCard({
   slug,
   name,
+  blurb,
 }: {
   slug: string;
   name: string;
+  blurb?: string;
 }) {
   return (
     <Link
@@ -17,7 +19,14 @@ export function AccordCard({
       <span className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-muted-foreground group-hover:text-accent-foreground/70">
         Accord
       </span>
-      <span className="font-display text-2xl">{name}</span>
+      <div className="flex flex-col gap-2">
+        <span className="font-display text-2xl">{name}</span>
+        {blurb ? (
+          <p className="line-clamp-3 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground/80">
+            {blurb}
+          </p>
+        ) : null}
+      </div>
     </Link>
   );
 }

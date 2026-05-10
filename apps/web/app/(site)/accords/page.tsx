@@ -3,6 +3,7 @@
 // inherited from P4a).
 import { Container } from "@/components/site/Container";
 import { AccordCard } from "@/components/taxonomy/AccordCard";
+import { ACCORD_COPY } from "@/lib/accord-copy";
 import { getAllAccords } from "@/lib/api/fetchers";
 
 export const metadata = {
@@ -10,6 +11,11 @@ export const metadata = {
   description:
     "Browse the canonical accord families: woody, fougère, oriental, gourmand, aquatic, chypre, and more.",
 };
+
+function firstSentence(text: string): string {
+  const match = text.match(/^[^.!?]*[.!?]/);
+  return match ? match[0].trim() : text;
+}
 
 export default async function AccordsPage() {
   // Build-time graceful degradation (mirrors home page).
@@ -23,9 +29,17 @@ export default async function AccordsPage() {
     <Container className="py-12 md:py-20">
       <h1 className="mb-10 font-display text-4xl">Accords</h1>
       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-        {accords.map((a) => (
-          <AccordCard key={a.slug} slug={a.slug} name={a.name} />
-        ))}
+        {accords.map((a) => {
+          const copy = ACCORD_COPY[a.slug];
+          return (
+            <AccordCard
+              key={a.slug}
+              slug={a.slug}
+              name={a.name}
+              blurb={copy ? firstSentence(copy.blurb) : undefined}
+            />
+          );
+        })}
       </div>
     </Container>
   );
