@@ -98,11 +98,13 @@ def create_app() -> FastAPI:
 
     # F6: allow_origins=["*"] is only valid because allow_credentials=False;
     # if credentials are ever enabled, replace with explicit dev origins.
+    # POST is required for /api/v1/chat (P3 SSE) — preflight rejects the
+    # browser fetch otherwise.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_resolve_cors_origins(),
         allow_credentials=False,
-        allow_methods=["GET", "OPTIONS"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
 
