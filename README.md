@@ -4,11 +4,11 @@ Fragwise is an open-source fragrance discovery platform with a built-in AI chatb
 
 ## Status
 
-**Phase 0a — repo skeleton only.** This repository currently contains structural and legal scaffolding. There is no runnable code yet. Application code, tooling, and the data model arrive in phases 0b and 0c.
+**In active development, runnable locally, not deployed yet.** Phases 0 through 4 are complete: monorepo tooling with docker compose and a `justfile`, the Postgres + pgvector schema and fragrance ontology, catalog read endpoints, hybrid lexical + vector search, the LangGraph chat guide (Wisp), and the web UI (home, catalog and taxonomy pages, dark theme). Auth is in progress as phase 5; deployment to fragwise.app follows.
 
 ## Stack
 
-- Web: Next.js 15 + Tailwind CSS + shadcn/ui
+- Web: Next.js 16 + Tailwind CSS v4 + shadcn/ui
 - API: Python FastAPI + LangGraph
 - Database: Neon Postgres + pgvector
 - Cache / rate limit: Upstash Redis
@@ -16,11 +16,20 @@ Fragwise is an open-source fragrance discovery platform with a built-in AI chatb
 - Auth: Clerk
 - LLM: OpenAI
 - Hosting: Vercel (web) + Fly.io (api), pay-as-you-go with scale-to-zero
-- Self-hostable via `docker-compose` (delivered in phase 0b)
+- Self-hostable via `docker-compose`
 
 ## Setup
 
-Local setup instructions arrive in **phase 0b** along with `docker-compose.yml`, the dev `justfile`, and lint/type configs. Until then, this repo is not runnable.
+Requires `just`, pnpm, uv (Python 3.12), and Docker.
+
+```sh
+cp .env.example .env   # fill in what you need
+just install           # pnpm workspace + Python venv via uv
+just db-up             # Postgres with pgvector via docker compose
+just dev               # web on :3000, api on :8000
+```
+
+Run `just` with no arguments to list the full recipe set (tests, lint, migrations, db shells).
 
 ## License
 
