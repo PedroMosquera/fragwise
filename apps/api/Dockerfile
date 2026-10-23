@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 # ---- builder ------------------------------------------------------------
-FROM ghcr.io/astral-sh/uv:0.5-bookworm-slim AS builder
+# uv 0.13 ships no bookworm image; the builder stays on bookworm so wheels match the runtime's glibc.
+FROM debian:bookworm-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:0.13 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
